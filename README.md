@@ -118,9 +118,10 @@ If Master Token has expired:
 `passcode	TEXT`
 `expiry	TEXT`
 
+```python
 import sqlite3
 
-`def create_creds_db():
+def create_creds_db():
     conn = sqlite3.connect("op_creds.db")
     cursor = conn.cursor()
     cursor.execute("""
@@ -160,5 +161,4 @@ insert_creds(
     mac="None",
     token="",
     expiry="None",
-)`
-
+)
