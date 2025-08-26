@@ -1,109 +1,139 @@
-🔹 Project Explanation: Tokenizer Authentication System
-1️⃣ Purpose
+Tokenizer Authentication System
+📝 Project Overview
 
-This project provides a secure, token-based authentication system for operators. Its main goals are:
+This project provides a secure, token-based authentication system for users, enabling multi-factor authentication (MFA) with temporary passcodes and token renewal.
 
-Verify operator identity using multi-factor authentication (MFA) via passcodes.
+It uses SQLite databases for storage and TCP sockets for communication.
 
-Generate and manage session tokens that are bound to the operator’s MAC address and IP.
+🎯 Purpose
 
-Renew tokens automatically when they are expired, without asking the operator to re-login.
+Verify user identity using MFA passcodes sent via email.
 
-Maintain a simple, lightweight database for credentials and passcodes using SQLite.
+Generate and manage session tokens bound to the user’s MAC address and IP.
 
-Enable secure communication between the client and server via custom TCP sockets.
+Automatically renew tokens when expired without requiring re-login.
 
-This system is useful in environments where operators need controlled access, and you want fine-grained token validation.
+Maintain a lightweight SQLite database for credentials and passcodes.
 
-2️⃣ High-Level Workflow
-Step 1: Operator Requests a Passcode
+Provide threaded TCP servers for concurrent user authentication.
 
-The operator sends a request to the server with their email, password, MAC, and IP.
+🔄 High-Level Workflow
+1️⃣ User Requests a Passcode
 
-Server verifies that the email/password exists.
+User sends: MAC | Email | Password | IP.
 
-Server generates a temporary 6-character passcode.
+Server verifies credentials.
 
-Passcode is stored in op_passcodes.db and emailed to the operator.
+Server generates a 6-character temporary passcode.
 
-Purpose: Ensure that the operator requesting access is the rightful owner of the account.
+Passcode is stored in op_passcodes.db and emailed to the user.
 
-Step 2: Operator Authenticates with Passcode
+Purpose: Confirm the user’s identity before issuing a token.
 
-Operator sends MAC | Email | Phone | Password | Passcode to the server.
+2️⃣ User Authenticates with Passcode
+
+User sends: MAC | Email | Phone | Password | Passcode.
 
 Server validates:
 
-Passcode exists in DB
-
-Passcode matches input
+Passcode exists and matches
 
 Passcode is not expired
 
 If valid:
 
-Server generates a Base Token (hashed credentials + salt)
+Generate a Base Token (hashed credentials + salt)
 
-Server generates a Master Token (bound to MAC + IP + Base Token)
+Generate a Master Token (bound to MAC + IP + Base Token)
 
-Stores Master Token in op_creds.db
+Store Master Token in op_creds.db
 
-Deletes the used passcode from DB
+Delete the used passcode
 
-Response to operator:
+Response example:
 
 𝔄𝔴𝔣𝔢𝔯_𝔥𝔢𝔩𝔩𝔴𝔞𝔩𝔩_<base_token>
 
 
-Purpose: Multi-factor authentication ensures secure operator login and prevents unauthorized access.
+Purpose: Ensure multi-factor authentication and secure login.
 
-Step 3: Operator Makes Requests Using Tokens
+3️⃣ User Makes Requests Using Tokens
 
-Every subsequent request includes:
+Requests include:
 
 TOKEN | MAC | REQUEST | DATA...
 
 
-Server validates token:
+Server checks:
 
 Recreates Master Token from received token + MAC + IP
 
-Fetches stored token from DB
+Validates token in DB
 
-Checks token expiry:
+Checks expiry:
 
 Still valid → "authorized"
 
-Expired → generates new base token, replaces DB entry → "renew|<new_base_token>"
+Expired → generate new Base Token → "renew|<base_token>"
 
-Invalid or tampered → "unauthorized"
+Invalid → "unauthorized"
 
-Purpose: Operators can continue working without re-login while maintaining session security.
+Purpose: Users can continue operations securely without re-login.
 
-Step 4: Token Renewal
+4️⃣ Token Renewal
 
-If the Master Token has expired, the server:
+If Master Token is expired:
 
-Generates a new Base Token from the operator’s credentials
+Generate new Base Token from credentials
 
-Replaces the old DB entry
+Replace old DB entry
 
-Returns "renew|<base_token>" to the operator
+Return:
 
-Operator seamlessly continues operations with the new token.
+renew|<base_token>
 
-Purpose: Ensure smooth workflow without compromising security.
 
-3️⃣ Key Features
+Purpose: Seamless workflow while maintaining session security.
 
-MAC + IP Binding: Tokens are bound to the operator’s device and network.
+🔑 Key Features
 
-Passcode Expiry: Temporary codes expire after 3 minutes to prevent replay attacks.
+MAC + IP Binding: Tokens tied to user device and network.
 
-Token Expiry: Master tokens expire after 1 hour and are renewable.
+Passcode Expiry: Temporary codes expire after 3 minutes.
 
-Email-Based MFA: Temporary passcodes are sent via email.
+Token Expiry: Master tokens expire after 1 hour, renewable automatically.
 
-Lightweight DB: Uses SQLite (op_creds.db, op_passcodes.db) for storage.
+Email-Based MFA: Passcodes sent via email.
 
-Threaded TCP Servers: Supports concurrent operator authentication and passcode requests.
+Lightweight DB: Uses SQLite (op_creds.db, op_passcodes.db).
+
+Threaded TCP Servers: Supports multiple users concurrently.
+
+🛠 Getting Started
+Dependencies
+pip install sqlite3
+
+Run the Server
+python identity_operator_server.py
+python passcode_identity_operator_server.py
+
+📂 Database Schema
+op_creds.db
+Column	Type
+mac	TEXT
+password	TEXT
+email	TEXT
+phone	TEXT
+token	TEXT
+expiry	TEXT
+op_passcodes.db
+Column	Type
+mac	TEXT
+ip	TEXT
+phone	TEXT
+email	TEXT
+passcode	TEXT
+expiry	TEXT
+📝 Example Flow
+User requests passcode → receives email → authenticates → gets Base Token → Master Token created
+User uses token → server validates → token valid or renewed → user continues
