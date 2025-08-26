@@ -40,98 +40,75 @@ It uses SQLite for storage and threaded TCP servers for concurrent requests.
 
 User sends:
 
+```text
 MAC | Email | Phone | Password | Passcode
-
-markdown
-Copy
-Edit
-
 Server validates:
 
-- Passcode exists and matches  
-- Passcode is not expired  
+Passcode exists and matches
+
+Passcode is not expired
 
 If valid:
 
-1. Generate a Base Token (hashed credentials + salt)  
-2. Generate a Master Token (bound to MAC + IP + Base Token)  
-3. Store Master Token in `op_creds.db`  
-4. Delete the used passcode  
+Generate a Base Token (hashed credentials + salt)
+
+Generate a Master Token (bound to MAC + IP + Base Token)
+
+Store Master Token in op_creds.db
+
+Delete the used passcode
 
 Response example:
 
-Awfer_hellwall_<base_token>
-
-yaml
+text
 Copy
 Edit
-
----
-
-### 3. User Makes Requests Using Tokens
-
+Awfer_hellwall_<base_token>
+3. User Makes Requests Using Tokens
 Each request includes:
 
-TOKEN | MAC | REQUEST | DATA...
-
-markdown
+text
 Copy
 Edit
-
+TOKEN | MAC | REQUEST | DATA...
 Server checks:
 
-1. Recreates Master Token from token + MAC + IP  
-2. Fetches token from DB  
-3. Checks expiry:
+Recreates Master Token from token + MAC + IP
 
-Still valid → "authorized"
-Expired → "renew|<new_base_token>"
-Invalid → "unauthorized"
+Fetches token from DB
 
-yaml
+Checks expiry:
+
+text
 Copy
 Edit
-
----
-
-### 4. Token Renewal
-
+Still valid   → "authorized"
+Expired       → "renew|<new_base_token>"
+Invalid       → "unauthorized"
+4. Token Renewal
 If Master Token has expired:
 
-1. Generate new Base Token from user credentials  
-2. Replace old DB entry  
-3. Return:
+Generate new Base Token from user credentials
 
-renew|<base_token>
+Replace old DB entry
 
-yaml
+Return:
+
+text
 Copy
 Edit
-
+renew|<base_token>
 Purpose: Ensure smooth workflow without requiring the user to re-login.
 
----
+Key Features
+MAC + IP Binding: Tokens tied to user device and network
 
-## Key Features
+Passcode Expiry: Temporary codes expire in 3 minutes
 
-- MAC + IP Binding: Tokens tied to user device and network  
-- Passcode Expiry: Temporary codes expire in 3 minutes  
-- Token Expiry: Master tokens expire after 1 hour and can be renewed  
-- Email-Based MFA: Temporary passcodes sent via email  
-- Lightweight DB: Uses SQLite (`op_creds.db`, `op_passcodes.db`)  
-- Threaded TCP Servers: Supports multiple users concurrently
+Token Expiry: Master tokens expire after 1 hour and can be renewed
 
----
+Email-Based MFA: Temporary passcodes sent via email
 
-## Getting Started
+Lightweight DB: Uses SQLite (op_creds.db, op_passcodes.db)
 
-### Dependencies
-
-```bash
-pip install sqlite3
-Running the Servers
-bash
-Copy
-Edit
-python identity_operator_server.py
-python passcode_identity_operator_server.py
+Threaded TCP Servers: Supports multiple users concurrently
