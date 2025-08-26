@@ -155,8 +155,8 @@ def insert_creds(password, email, phone, mac="", token="", expiry="None"):
         return False
 
 insert_creds(
-    password="ABCabc123",
-    email="urstte121@gmail.com",
+    password="example-password",
+    email="example-email@gmail.com",
     phone="None",
     mac="None",
     token="",
