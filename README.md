@@ -12,21 +12,16 @@ Tokens are bound to the user’s **MAC address** and **IP**, ensuring only autho
 **Components:**
 1. `op_creds.db` - stores user credentials and tokens.
 2. `op_passcodes.db` - stores temporary passcodes.
-3. TCP servers:
-   - **Identity Operator Server** (`identity_operator_server.py`)
-   - **Passcode Identity Operator Server** (`passcode_identity_operator_server.py`)
+3. TCP server:
+   - **Identity Operator client thread** (`identity_operator_server.py`)
+   - **Passcode Identity Operator client threader** (`passcode_identity_operator_server.py`)
 
----
 
 ## 1️⃣ User Requests Passcode
 
 User sends a request to receive a temporary passcode via email:
 
 require_passcode | MAC | Password | Phone | Email
-
-markdown
-Copy
-Edit
 
 Server workflow:
 
@@ -107,19 +102,19 @@ If Master Token has expired:
 
 # 📂 Database Schema
 ## op_creds.db
-`Column	Type
-mac	TEXT
-password	TEXT
-email	TEXT
-phone	TEXT
-token	TEXT
-expiry	TEXT`
+`Column	Type`
+`mac	TEXT`
+`password	TEXT`
+`email	TEXT`
+`phone	TEXT`
+`token	TEXT`
+`expiry	TEXT`
 
 ## op_passcodes.db
-`Column	Type
-mac	TEXT
-ip	TEXT
-phone	TEXT
-email	TEXT
-passcode	TEXT
-expiry	TEXT`
+`Column	Type`
+`mac	TEXT`
+`ip	TEXT`
+`phone	TEXT`
+`email	TEXT`
+`passcode	TEXT`
+`expiry	TEXT`
