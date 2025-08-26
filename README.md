@@ -56,7 +56,7 @@ If valid:
 
 **Response example:**
 
-`Awfer_hellwall_<base_token>`
+`pythonizer_<base_token>`
 
 
 ## 3️⃣ User Makes Requests Using Tokens
@@ -64,7 +64,6 @@ If valid:
 Each request includes:
 
 `TOKEN | MAC | REQUEST | DATA...`
-
 
 Server workflow:
 
