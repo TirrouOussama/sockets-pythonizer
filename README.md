@@ -1,140 +1,46 @@
-**Tokenizer Authentication System**
-**📝 Project Overview**
+# Tokenizer Authentication System
 
-This project provides a secure, token-based authentication system for users, enabling multi-factor authentication (MFA) with temporary passcodes and token renewal.
+A **secure, token-based authentication system** for users, supporting **multi-factor authentication (MFA)** via temporary passcodes, token renewal, and device/IP binding.
 
-It uses SQLite databases for storage and TCP sockets for communication.
+---
 
-**🎯 Purpose**
+## 📝 Project Overview
 
-Verify user identity using MFA passcodes sent via email.
+This system allows users to authenticate securely with:
 
-Generate and manage session tokens bound to the user’s MAC address and IP.
+- Temporary **passcodes** sent via email  
+- **Base tokens** derived from credentials  
+- **Master tokens** bound to MAC and IP  
+- Automatic **token renewal** for expired sessions  
 
-Automatically renew tokens when expired without requiring re-login.
+It uses **SQLite** for storage and **threaded TCP servers** for concurrent requests.
 
-Maintain a lightweight SQLite database for credentials and passcodes.
+---
 
-Provide threaded TCP servers for concurrent user authentication.
+## 🎯 Purpose
 
-**🔄 High-Level Workflow**
-**1️⃣ User Requests a Passcode**
+- Verify user identity using **MFA passcodes**  
+- Generate and manage session tokens tied to **MAC + IP**  
+- Automatically **renew tokens** on expiration  
+- Maintain **lightweight SQLite databases** for credentials and passcodes  
+- Provide **threaded TCP servers** for simultaneous users  
 
-**1 User sends:** `MAC | Email | Password | IP`.
+---
 
-Server verifies credentials.
+## 🔄 High-Level Workflow
 
-Server generates a 6-character temporary passcode.
+### 1️⃣ User Requests a Passcode
+1. User sends their **MAC, email, password, and IP**.  
+2. Server verifies credentials.  
+3. Server generates a **6-character temporary passcode**.  
+4. Passcode is stored in `op_passcodes.db` and emailed to the user.  
 
-Passcode is stored in `op_passcodes.db` and emailed to the user.
+**Purpose:** Confirm the user's identity before issuing a token.
 
-Purpose: Confirm the user’s identity before issuing a token.
+---
 
-**2️⃣ User Authenticates with Passcode**
+### 2️⃣ User Authenticates with Passcode
+User sends:
 
-User sends: `MAC | Email | Phone | Password | Passcode`.
-
-**2 Server validates:**
-
-Passcode exists and matches
-
-Passcode is not expired
-
-If valid:
-
-Generate a Base Token (hashed credentials + salt)
-
-Generate a Master Token (bound to MAC + IP + Base Token)
-
-Store Master Token in `op_creds.db`
-
-Delete the used passcode
-
-Response example:
-
-`𝔄𝔴𝔣𝔢𝔯_𝔥𝔢𝔩𝔩𝔴𝔞𝔩𝔩_<base_token>`
-
-
-**Purpose: Ensure multi-factor authentication and secure login.**
-
-**3️⃣ User Makes Requests Using Tokens**
-
-**Requests include:**
-
-`TOKEN | MAC | REQUEST | DATA...`
-
-
-**Server checks:**
-
-Recreates Master Token from received token + MAC + IP
-
-Validates token in DB
-
-Checks expiry:
-
-Still valid → `"authorized"`
-
-Expired → generate new Base Token → `"renew|<base_token>"`
-
-Invalid → `"unauthorized"`
-
-**Purpose: Users can continue operations securely without re-login.**
-
-**4️⃣ Token Renewal**
-
-If Master Token is expired:
-
-Generate new Base Token from credentials
-
-Replace old DB entry
-
-Return:
-
-`renew|<base_token>`
-
-
-**Purpose: Seamless workflow while maintaining session security.**
-
-**🔑 Key Features**
-
-MAC + IP Binding: Tokens tied to user device and network.
-
-Passcode Expiry: Temporary codes expire after 3 minutes.
-
-Token Expiry: Master tokens expire after 1 hour, renewable automatically.
-
-Email-Based MFA: Passcodes sent via email.
-
-Lightweight DB: Uses SQLite (op_creds.db, op_passcodes.db).
-
-Threaded TCP Servers: Supports multiple users concurrently.
-
-**🛠 Getting Started**
-Dependencies
-pip install sqlite3
-
-Run the Server
-python identity_operator_server.py
-python passcode_identity_operator_server.py
-
-📂 Database Schema
-`op_creds.db`
-`Column	Type`
-`mac	TEXT`
-`password	TEXT`
-`email	TEXT`
-`phone	TEXT`
-`token	TEXT`
-`expiry	TEXT`
-`op_passcodes.db`
-`Column	Type`
-`mac	TEXT`
-`ip	TEXT`
-`phone	TEXT`
-`email	TEXT`
-`passcode	TEXT`
-`expiry	TEXT`
-
-**📝 Example Flow**
-User requests passcode → receives email → authenticates → gets Base Token → Master Token created
-User uses token → server validates → token valid or renewed → user continues
+```text
+MAC | Email | Phone | Password | Passcode
