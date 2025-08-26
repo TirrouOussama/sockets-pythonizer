@@ -164,7 +164,11 @@ insert_creds(
 )
 ```
 ### Nt 
+
 This code is being used on realy system supporting a bot neet of over 1000.
+
 Use utility to create databases.
+
 You can repurpose to specific use cases.
+
 Can be used with HTTP, use nginx to reroute token and get "authorized" to forward packets.
