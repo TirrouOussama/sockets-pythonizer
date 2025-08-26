@@ -165,7 +165,7 @@ insert_creds(
 ```
 ### Nt 
 
-This code is being used on realy system supporting a bot neet of over 1000.
+This code is being used on a real system supporting a bot-net of over 1000 users.
 
 Use utility to create databases.
 
