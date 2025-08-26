@@ -44,3 +44,16 @@ User sends:
 
 ```text
 MAC | Email | Phone | Password | Passcode
+Server validates:
+
+- ✅ Passcode exists and matches  
+- ✅ Passcode is **not expired**
+
+If valid:
+
+1. Generate a **Base Token** (hashed credentials + salt)  
+2. Generate a **Master Token** (bound to MAC + IP + Base Token)  
+3. Store Master Token in `op_creds.db`  
+4. Delete the used passcode  
+
+**Response example:**
