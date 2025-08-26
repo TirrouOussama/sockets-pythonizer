@@ -117,3 +117,48 @@ If Master Token has expired:
 `email	TEXT`
 `passcode	TEXT`
 `expiry	TEXT`
+
+import sqlite3
+
+`def create_creds_db():
+    conn = sqlite3.connect("op_creds.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS op_creds (
+            mac TEXT,
+            password TEXT,
+            email TEXT,
+            phone TEXT,
+            token TEXT,
+            expiry TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+create_creds_db()
+
+def insert_creds(password, email, phone, mac="", token="", expiry="None"):
+    try:
+        conn = sqlite3.connect("op_creds.db")
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO op_creds (mac, password, email, phone, token)
+            VALUES (?, ?, ?, ?, ?)
+        """, (mac, password, email, phone, token))
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"[ERROR] insert_creds failed: {e}")
+        return False
+
+insert_creds(
+    password="ABCabc123",
+    email="urstte121@gmail.com",
+    phone="None",
+    mac="None",
+    token="",
+    expiry="None",
+)`
+
