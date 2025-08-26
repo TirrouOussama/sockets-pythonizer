@@ -1,114 +1,129 @@
-# User Authentication & Tokenizer System
+# User Authentication System
 
-A secure, token-based authentication system for users, supporting multi-factor authentication (MFA) via temporary passcodes, token renewal, and device/IP binding.
-
----
-
-## Project Overview
-
-This system allows users to authenticate securely with:
-
-- Temporary passcodes sent via email  
-- Base tokens derived from credentials  
-- Master tokens bound to MAC and IP  
-- Automatic token renewal for expired sessions  
-
-It uses SQLite for storage and threaded TCP servers for concurrent requests.
+A lightweight threaded TCP authentication system with **email-based MFA** and device-bound tokens.
 
 ---
 
-## Purpose
+## Overview
 
-- Verify user identity using MFA passcodes  
-- Generate and manage session tokens tied to MAC + IP  
-- Automatically renew tokens on expiration  
-- Maintain lightweight SQLite databases for credentials and passcodes  
-- Provide threaded TCP servers for simultaneous users  
+This system provides secure user authentication using temporary passcodes, Base Tokens, and Master Tokens.  
+Tokens are bound to the user’s **MAC address** and **IP**, ensuring only authorized devices can interact.
+
+**Components:**
+1. `op_creds.db` - stores user credentials and tokens.
+2. `op_passcodes.db` - stores temporary passcodes.
+3. TCP servers:
+   - **Identity Operator Server** (`identity_operator_server.py`)
+   - **Passcode Identity Operator Server** (`passcode_identity_operator_server.py`)
 
 ---
 
-## Workflow
+## 1️⃣ User Requests Passcode
 
-### 1. User Requests a Passcode
+User sends a request to receive a temporary passcode via email:
 
-1. User sends their MAC, email, password, and IP.  
-2. Server verifies credentials.  
-3. Server generates a 6-character temporary passcode.  
-4. Passcode is stored in `op_passcodes.db` and emailed to the user.  
+require_passcode | MAC | Password | Phone | Email
 
-### 2. User Authenticates with Passcode
+markdown
+Copy
+Edit
+
+Server workflow:
+
+1. Check if email + password exists in `op_creds.db`.
+2. Generate a **6-character temporary passcode**.
+3. Store passcode in `op_passcodes.db` (expires in 3 minutes).
+4. Send passcode to user email.
+
+**Response example:**
+
+Passcode is sent
+
+yaml
+Copy
+Edit
+
+---
+
+## 2️⃣ User Authenticates with Passcode
 
 User sends:
 
-```text
 MAC | Email | Phone | Password | Passcode
+
+markdown
+Copy
+Edit
+
 Server validates:
 
-Passcode exists and matches
-
-Passcode is not expired
+- ✅ Passcode exists and matches
+- ✅ Passcode is not expired
 
 If valid:
 
-Generate a Base Token (hashed credentials + salt)
+1. Generate a **Base Token** (hashed credentials + salt)  
+2. Generate a **Master Token** (bound to MAC + IP + Base Token)  
+3. Store Master Token in `op_creds.db`  
+4. Delete the used passcode  
 
-Generate a Master Token (bound to MAC + IP + Base Token)
+**Response example:**
 
-Store Master Token in op_creds.db
+Awfer_hellwall_<base_token>
 
-Delete the used passcode
-
-Response example:
-
-text
+yaml
 Copy
 Edit
-Awfer_hellwall_<base_token>
-3. User Makes Requests Using Tokens
+
+---
+
+## 3️⃣ User Makes Requests Using Tokens
+
 Each request includes:
 
-text
-Copy
-Edit
 TOKEN | MAC | REQUEST | DATA...
-Server checks:
 
-Recreates Master Token from token + MAC + IP
-
-Fetches token from DB
-
-Checks expiry:
-
-text
+yaml
 Copy
 Edit
-Still valid   → "authorized"
-Expired       → "renew|<new_base_token>"
-Invalid       → "unauthorized"
-4. Token Renewal
+
+Server workflow:
+
+1. Recreates Master Token from token + MAC + IP.
+2. Fetches token from DB.
+3. Checks expiry:
+
+- Still valid → `"authorized"`
+- Expired → `"renew|<new_base_token>"`
+- Invalid → `"unauthorized"`
+
+---
+
+## 4️⃣ Token Renewal
+
 If Master Token has expired:
 
-Generate new Base Token from user credentials
+1. Generate new Base Token from user credentials.
+2. Replace old DB entry.
+3. Return:
 
-Replace old DB entry
+renew|<base_token>
 
-Return:
-
-text
+yaml
 Copy
 Edit
-renew|<base_token>
-Purpose: Ensure smooth workflow without requiring the user to re-login.
 
-Key Features
-MAC + IP Binding: Tokens tied to user device and network
+**Purpose:** Ensure smooth workflow without re-login.
 
-Passcode Expiry: Temporary codes expire in 3 minutes
+---
 
-Token Expiry: Master tokens expire after 1 hour and can be renewed
+## 🔑 Key Features
 
-Email-Based MFA: Temporary passcodes sent via email
+- **MAC + IP Binding:** Tokens tied to user device and network.
+- **Passcode Expiry:** Temporary codes expire in 3 minutes.
+- **Token Expiry:** Master tokens expire after 1 hour and can be renewed.
+- **Email-Based MFA:** Temporary passcodes sent via email.
+- **Lightweight DB:** Uses SQLite (`op_creds.db`, `op_passcodes.db`).
+- **Threaded TCP Servers:** Supports multiple users concurrently.
 
-Lightweight DB: Uses SQLite (op_creds.db, op_passcodes.db)
-
-Threaded TCP Servers: Supports multiple users concurrently
+---
