@@ -1,59 +1,137 @@
-# Tokenizer Authentication System
+# User Authentication & Tokenizer System
 
-A **secure, token-based authentication system** for users, supporting **multi-factor authentication (MFA)** via temporary passcodes, token renewal, and device/IP binding.
+A secure, token-based authentication system for users, supporting multi-factor authentication (MFA) via temporary passcodes, token renewal, and device/IP binding.
 
 ---
 
-## 📝 Project Overview
+## Project Overview
 
 This system allows users to authenticate securely with:
 
-- Temporary **passcodes** sent via email  
-- **Base tokens** derived from credentials  
-- **Master tokens** bound to MAC and IP  
-- Automatic **token renewal** for expired sessions  
+- Temporary passcodes sent via email  
+- Base tokens derived from credentials  
+- Master tokens bound to MAC and IP  
+- Automatic token renewal for expired sessions  
 
-It uses **SQLite** for storage and **threaded TCP servers** for concurrent requests.
-
----
-
-## 🎯 Purpose
-
-- Verify user identity using **MFA passcodes**  
-- Generate and manage session tokens tied to **MAC + IP**  
-- Automatically **renew tokens** on expiration  
-- Maintain **lightweight SQLite databases** for credentials and passcodes  
-- Provide **threaded TCP servers** for simultaneous users  
+It uses SQLite for storage and threaded TCP servers for concurrent requests.
 
 ---
 
-## 🔄 High-Level Workflow
+## Purpose
 
-### 1️⃣ User Requests a Passcode
-1. User sends their **MAC, email, password, and IP**.  
+- Verify user identity using MFA passcodes  
+- Generate and manage session tokens tied to MAC + IP  
+- Automatically renew tokens on expiration  
+- Maintain lightweight SQLite databases for credentials and passcodes  
+- Provide threaded TCP servers for simultaneous users  
+
+---
+
+## Workflow
+
+### 1. User Requests a Passcode
+
+1. User sends their MAC, email, password, and IP.  
 2. Server verifies credentials.  
-3. Server generates a **6-character temporary passcode**.  
+3. Server generates a 6-character temporary passcode.  
 4. Passcode is stored in `op_passcodes.db` and emailed to the user.  
 
-**Purpose:** Confirm the user's identity before issuing a token.
+### 2. User Authenticates with Passcode
 
----
-
-### 2️⃣ User Authenticates with Passcode
 User sends:
 
-```text
 MAC | Email | Phone | Password | Passcode
+
+markdown
+Copy
+Edit
+
 Server validates:
 
-- ✅ Passcode exists and matches  
-- ✅ Passcode is **not expired**
+- Passcode exists and matches  
+- Passcode is not expired  
 
 If valid:
 
-1. Generate a **Base Token** (hashed credentials + salt)  
-2. Generate a **Master Token** (bound to MAC + IP + Base Token)  
+1. Generate a Base Token (hashed credentials + salt)  
+2. Generate a Master Token (bound to MAC + IP + Base Token)  
 3. Store Master Token in `op_creds.db`  
 4. Delete the used passcode  
 
-**Response example:**
+Response example:
+
+Awfer_hellwall_<base_token>
+
+yaml
+Copy
+Edit
+
+---
+
+### 3. User Makes Requests Using Tokens
+
+Each request includes:
+
+TOKEN | MAC | REQUEST | DATA...
+
+markdown
+Copy
+Edit
+
+Server checks:
+
+1. Recreates Master Token from token + MAC + IP  
+2. Fetches token from DB  
+3. Checks expiry:
+
+Still valid → "authorized"
+Expired → "renew|<new_base_token>"
+Invalid → "unauthorized"
+
+yaml
+Copy
+Edit
+
+---
+
+### 4. Token Renewal
+
+If Master Token has expired:
+
+1. Generate new Base Token from user credentials  
+2. Replace old DB entry  
+3. Return:
+
+renew|<base_token>
+
+yaml
+Copy
+Edit
+
+Purpose: Ensure smooth workflow without requiring the user to re-login.
+
+---
+
+## Key Features
+
+- MAC + IP Binding: Tokens tied to user device and network  
+- Passcode Expiry: Temporary codes expire in 3 minutes  
+- Token Expiry: Master tokens expire after 1 hour and can be renewed  
+- Email-Based MFA: Temporary passcodes sent via email  
+- Lightweight DB: Uses SQLite (`op_creds.db`, `op_passcodes.db`)  
+- Threaded TCP Servers: Supports multiple users concurrently
+
+---
+
+## Getting Started
+
+### Dependencies
+
+```bash
+pip install sqlite3
+Running the Servers
+bash
+Copy
+Edit
+python identity_operator_server.py
+python passcode_identity_operator_server.py
