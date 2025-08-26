@@ -39,21 +39,13 @@ Server workflow:
 
 Passcode is sent
 
-yaml
-Copy
-Edit
-
----
 
 ## 2️⃣ User Authenticates with Passcode
 
 User sends:
 
-MAC | Email | Phone | Password | Passcode
+`MAC | Email | Phone | Password | Passcode`
 
-markdown
-Copy
-Edit
 
 Server validates:
 
@@ -69,23 +61,15 @@ If valid:
 
 **Response example:**
 
-Awfer_hellwall_<base_token>
+`Awfer_hellwall_<base_token>`
 
-yaml
-Copy
-Edit
-
----
 
 ## 3️⃣ User Makes Requests Using Tokens
 
 Each request includes:
 
-TOKEN | MAC | REQUEST | DATA...
+`TOKEN | MAC | REQUEST | DATA...`
 
-yaml
-Copy
-Edit
 
 Server workflow:
 
@@ -107,15 +91,10 @@ If Master Token has expired:
 2. Replace old DB entry.
 3. Return:
 
-renew|<base_token>
-
-yaml
-Copy
-Edit
+`renew|<base_token>`
 
 **Purpose:** Ensure smooth workflow without re-login.
 
----
 
 ## 🔑 Key Features
 
@@ -126,4 +105,21 @@ Edit
 - **Lightweight DB:** Uses SQLite (`op_creds.db`, `op_passcodes.db`).
 - **Threaded TCP Servers:** Supports multiple users concurrently.
 
----
+# 📂 Database Schema
+## op_creds.db
+`Column	Type
+mac	TEXT
+password	TEXT
+email	TEXT
+phone	TEXT
+token	TEXT
+expiry	TEXT`
+
+## op_passcodes.db
+`Column	Type
+mac	TEXT
+ip	TEXT
+phone	TEXT
+email	TEXT
+passcode	TEXT
+expiry	TEXT`
